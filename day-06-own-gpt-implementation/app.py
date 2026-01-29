@@ -22,6 +22,12 @@ def main():
     session_manager.render_sidebar_navigation()
     
     api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
+    
+    if not api_key:
+        st.error("🚨 **API Key Missing!** Nexa cannot find your GEMINI_API_KEY.")
+        st.info("Check your Streamlit Cloud Secrets or local .env file.")
+        st.stop()
+    
     ai_client = genai.Client(api_key=api_key)
 
     chat_sessions = st.session_state.chat_sessions
