@@ -21,7 +21,9 @@ def main():
     session_manager.initialize_app_state()
     session_manager.render_sidebar_navigation()
     
-    ai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
+    ai_client = genai.Client(api_key=api_key)
+
     chat_sessions = st.session_state.chat_sessions
 
     header_title = session_manager.get_active_session_title()
