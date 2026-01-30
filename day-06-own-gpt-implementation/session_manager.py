@@ -8,7 +8,8 @@ def initialize_app_state():
     state_schema = {
         "chat_sessions": {},
         "active_chat_id": None,
-        "suggestion_trigger": None
+        "suggestion_trigger": None,
+        "global_context": "Nexa Backend"
     }
     
     for app_state_key, initial_value in state_schema.items():
@@ -26,7 +27,7 @@ def render_sidebar_navigation():
         
         search_query = st.text_input(
             "Search", 
-            placeholder="Search the Core...", 
+            placeholder=constants.SEARCH_PROMPT, 
             label_visibility="collapsed"
         )
         
@@ -34,58 +35,50 @@ def render_sidebar_navigation():
             st.session_state.active_chat_id = None
             st.rerun()
 
-        st.caption("Recents")
+        st.caption("Recent Intelligence")
 
         ordered_ids = list(chat_sessions.keys())[::-1]
-
         filtered_ids = [
             search_id for search_id in ordered_ids 
             if search_query.lower() in chat_sessions[search_id]["title"].lower()
         ]
 
-        for chat_id in filtered_ids:
-            node_column, menu_column = st.columns(constants.SIDEBAR_COLUMN_RATIO)
+        for search_id in filtered_ids:
+            session_link_col, management_menu_col = st.columns(constants.SIDEBAR_COLUMN_RATIO)
             
-            with node_column:
+            with session_link_col:
+                session_title = chat_sessions[search_id]["title"]
+                
                 if st.button(
-                    chat_sessions[chat_id]["title"], 
-                    key=f"nav_{chat_id}", 
+                    session_title, 
+                    key=f"nav_{search_id}", 
                     use_container_width=True
                 ):
-                    st.session_state.active_chat_id = chat_id
+                    st.session_state.active_chat_id = search_id
                     st.rerun()
             
-            with menu_column:
+            with management_menu_col:
                 with st.popover("", icon=":material/more_vert:"):
-                    current_name = chat_sessions[chat_id]["title"]
-                    new_name = st.text_input(
-                        "Rename Node:", value=current_name, key=f"ren_{chat_id}"
+                    updated_name = st.text_input(
+                        "Rename Node:", 
+                        value=chat_sessions[search_id]["title"], 
+                        key=f"ren_{search_id}"
                     )
-                    
-                    if new_name != current_name:
-                        chat_sessions[chat_id]["title"] = new_name
+
+                    if updated_name != chat_sessions[search_id]["title"]:
+                        chat_sessions[search_id]["title"] = updated_name
                         st.rerun()
                     
-                    if st.button(
-                        "Delete Chat", 
-                        icon=":material/delete:", 
-                        key=f"del_{chat_id}", 
-                        use_container_width=True
-                    ):
-                        st.session_state.chat_sessions.pop(chat_id, None)
-                        if st.session_state.active_chat_id == chat_id:
+                    if st.button("Delete", icon=":material/delete:", key=f"del_{search_id}"):
+                        st.session_state.chat_sessions.pop(search_id, None)
+                        if st.session_state.active_chat_id == search_id:
                             st.session_state.active_chat_id = None
                         st.rerun()
-
-        st.container(height=constants.SIDEBAR_SPACER_HEIGHT, border=False)
-        st.write("---")
-        st.button("Settings & Help", icon=":material/settings:", use_container_width=True)
 
 
 def get_active_view_key():
     active_id = st.session_state.active_chat_id
     sessions = st.session_state.chat_sessions
-    
     view_key = "welcome"
     
     if active_id and sessions.get(active_id, {}).get("messages"):
@@ -97,7 +90,6 @@ def get_active_view_key():
 def get_active_session_title():
     active_id = st.session_state.active_chat_id
     sessions = st.session_state.chat_sessions
-
     session_title = "New Chat"
     
     if active_id and active_id in sessions:
