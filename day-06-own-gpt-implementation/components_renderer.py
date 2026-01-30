@@ -50,7 +50,7 @@ def render_welcome_interface():
             if st.button(card_content["label"], icon=card_content["icon"], use_container_width=True):
                 st.session_state.suggestion_trigger = card_content["prompt"]
                 st.rerun()
-
+                
 
 def render_active_chat_log():
     current_session_id = st.session_state.active_chat_id
@@ -58,7 +58,9 @@ def render_active_chat_log():
 
     if current_session_id in chat_sessions:
         for chat_entry in chat_sessions[current_session_id]["messages"]:
-            with st.chat_message(chat_entry["role"]):
+            avatar = constants.BOT_AVATAR if chat_entry["role"] == constants.ASSISTANT_ROLE else None
+            
+            with st.chat_message(chat_entry["role"], avatar=avatar):
                 st.markdown(chat_entry["content"])
 
 
@@ -66,3 +68,4 @@ VIEW_DISPATCHER = {
     "welcome": render_welcome_interface,
     "chat": render_active_chat_log
 }
+    
