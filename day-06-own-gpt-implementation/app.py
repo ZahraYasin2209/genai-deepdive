@@ -39,7 +39,7 @@ def main():
     active_view_key = session_manager.get_active_view_key()
     components_renderer.VIEW_DISPATCHER[active_view_key]()
 
-    user_input = st.chat_input("Connect with Nexa...")
+    user_input = st.chat_input(constants.USER_INPUT_TEXT)
     
     if st.session_state.suggestion_trigger:
         user_input = st.session_state.suggestion_trigger
@@ -63,33 +63,34 @@ def main():
         active_messages = chat_sessions[active_id]["messages"]
         
         if active_messages[-1]["role"] == constants.USER_ROLE:
-            with st.chat_message(constants.ASSISTANT_ROLE):
-                try:
-                    formatted_history = [
-                        {
-                            "role": msg["role"],
-                            "parts": [{"text": msg["content"]}]
-                        } for msg in active_messages
-                    ]
+            with st.chat_message(constants.ASSISTANT_ROLE, avatar=constants.BOT_AVATAR):
+                with st.spinner("Nexa is thinking..."):
+                    try:
+                        formatted_history = [
+                            {
+                                "role": msg["role"],
+                                "parts": [{"text": msg["content"]}]
+                            } for msg in active_messages
+                        ]
 
-                    chat_response = ai_client.models.generate_content(
-                        model=constants.MODEL_NAME, 
-                        contents=formatted_history,
-                        config={
-                            "system_instruction": constants.SYSTEM_INSTRUCTION,
-                            "max_output_tokens": constants.MAX_RESPONSE_TOKENS,
-                            "temperature": constants.TEMPERATURE
-                        }
-                    )
-                    
-                    chat_sessions[active_id]["messages"].append({
-                        "role": constants.ASSISTANT_ROLE, 
-                        "content": chat_response.text
-                    })
-                    st.rerun()
-                    
-                except Exception as e:
-                    st.error(f"Neural Error: {e}")
+                        chat_response = ai_client.models.generate_content(
+                            model=constants.MODEL_NAME, 
+                            contents=formatted_history,
+                            config={
+                                "system_instruction": constants.SYSTEM_INSTRUCTION,
+                                "max_output_tokens": constants.MAX_RESPONSE_TOKENS,
+                                "temperature": constants.TEMPERATURE
+                            }
+                        )
+                        
+                        chat_sessions[active_id]["messages"].append({
+                            "role": constants.ASSISTANT_ROLE, 
+                            "content": chat_response.text
+                        })
+                        st.rerun()
+                        
+                    except Exception as e:
+                        st.error(f"Neural Error: {e}")
 
 
 if __name__ == "__main__":
