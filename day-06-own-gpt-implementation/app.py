@@ -27,23 +27,20 @@ def main():
         st.stop()
 
     ai_client = genai.Client(api_key=api_key)
-
-    chat_sessions = st.session_state.chat_sessions
-
-    header_title = session_manager.get_active_session_title()
-    header_left, header_mid, _ = st.columns(constants.HEADER_COLUMN_RATIO)
     
-    with header_left: 
-        components_renderer.render_nexa_brand_identity(
-            icon_pixel_size=constants.LOGO_SIZE_HEADER
-        )
+    chat_sessions = st.session_state.chat_sessions
+    
+    header_title = session_manager.get_active_session_title()
+    _, header_mid, _ = st.columns(constants.HEADER_COLUMN_RATIO)
+    
     with header_mid: 
         st.markdown(f"<h3 style='text-align: center;'>{header_title}</h3>", unsafe_allow_html=True)
 
     active_view_key = session_manager.get_active_view_key()
     components_renderer.VIEW_DISPATCHER[active_view_key]()
 
-    user_input = st.chat_input(constants.CHAT_INPUT_TEXT)
+    user_input = st.chat_input(constants.USER_INPUT_TEXT)
+    
     if st.session_state.suggestion_trigger:
         user_input = st.session_state.suggestion_trigger
         st.session_state.suggestion_trigger = None
@@ -64,22 +61,35 @@ def main():
     active_id = st.session_state.active_chat_id
     if active_id and chat_sessions[active_id]["messages"]:
         active_messages = chat_sessions[active_id]["messages"]
-        last_entry = active_messages[-1]
         
-        if last_entry["role"] == constants.USER_ROLE:
+        if active_messages[-1]["role"] == constants.USER_ROLE:
             with st.chat_message(constants.ASSISTANT_ROLE):
                 try:
-                    response = ai_client.models.generate_content(
+                    formatted_history = [
+                        {
+                            "role": msg["role"],
+                            "parts": [{"text": msg["content"]}]
+                        } for msg in active_messages
+                    ]
+
+                    chat_response = ai_client.models.generate_content(
                         model=constants.MODEL_NAME, 
-                        contents=last_entry["content"]
+                        contents=formatted_history,
+                        config={
+                            "system_instruction": constants.SYSTEM_INSTRUCTION,
+                            "max_output_tokens": constants.MAX_RESPONSE_TOKENS,
+                            "temperature": constants.TEMPERATURE
+                        }
                     )
+                    
                     chat_sessions[active_id]["messages"].append({
                         "role": constants.ASSISTANT_ROLE, 
-                        "content": response.text
+                        "content": chat_response.text
                     })
                     st.rerun()
-                except Exception:
-                    st.error("Neural Quota exceeded. Please wait.")
+                    
+                except Exception as e:
+                    st.error(f"Neural Error: {e}")
 
 
 if __name__ == "__main__":
