@@ -20,6 +20,8 @@ USER_INPUT_TEXT = f"Connect with Nexa..."
 MAX_RESPONSE_TOKENS = 4000 
 TEMPERATURE = 0.2
 
+BOT_AVATAR = "https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+
 SYSTEM_INSTRUCTION = (
     "You are the Nexa Senior Backend Architect. "
     "COMPRESSION RULE: Provide high-density technical information. "
