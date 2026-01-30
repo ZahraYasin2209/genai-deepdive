@@ -67,5 +67,4 @@ def render_active_chat_log():
 VIEW_DISPATCHER = {
     "welcome": render_welcome_interface,
     "chat": render_active_chat_log
-}
-    
+}  
