@@ -39,7 +39,7 @@ def main():
     active_view_key = session_manager.get_active_view_key()
     components_renderer.VIEW_DISPATCHER[active_view_key]()
 
-    user_input = st.chat_input(constants.USER_INPUT_TEXT)
+    user_input = st.chat_input("Connect with Nexa...")
     
     if st.session_state.suggestion_trigger:
         user_input = st.session_state.suggestion_trigger
