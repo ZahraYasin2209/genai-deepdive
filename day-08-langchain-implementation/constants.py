@@ -44,7 +44,7 @@ SUGGESTIONS = {
     "optimize": {
         "label": "Optimize Backend",
         "icon": ":material/speed:",
-        "prompt": "Help me optimize my Django models.",
+        "prompt": "Help me optimize my Django models briefly.",
     },
     "debug": {
         "label": "Exceptions Handling",
