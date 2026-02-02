@@ -9,7 +9,6 @@ import constants
 
 def get_langchain_model():
     model_name = st.session_state.get("selected_model_version", constants.MODEL_NAME)
-
     api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
     if not api_key:
@@ -74,6 +73,7 @@ def execute_neural_processing(llm_instance, message_log, active_session_id):
                 st.rerun()
             except Exception as e:
                 st.error(f"Neural Core Error: {e}")
+
     return True
 
 
