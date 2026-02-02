@@ -13,7 +13,9 @@ def get_langchain_model():
     api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
     if not api_key:
-        st.error("Neural Configuration Error: GEMINI_API_KEY not found. Please configure secrets.")
+        st.error(
+            "Neural Configuration Error: GEMINI_API_KEY not found. Please configure secrets."
+        )
         st.stop()
 
     return ChatGoogleGenerativeAI(
