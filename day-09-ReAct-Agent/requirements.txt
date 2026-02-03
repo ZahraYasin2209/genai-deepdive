@@ -1,7 +1,7 @@
-langchain-google-genai
-langchain-community
 streamlit
 python-dotenv
-google-genai
+langchain-google-genai
+langchain-community
+langchain-core
 pydantic
 pytz

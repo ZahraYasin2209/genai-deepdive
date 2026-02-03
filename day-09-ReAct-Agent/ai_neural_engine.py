@@ -8,13 +8,14 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 
 def get_langchain_model():
-    api_key = os.getenv("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
+    model_name = st.session_state.get("selected_model_version", constants.MODEL_NAME)
+    api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
     if not api_key:
-        st.error("GEMINI_API_KEY is missing. Please check your deployment secrets.")
+        st.error(
+            "Neural Configuration Error: GEMINI_API_KEY not found. Please configure secrets."
+        )
         st.stop()
-
-    model_name = st.session_state.get("selected_model_version", constants.MODEL_NAME)
 
     return ChatGoogleGenerativeAI(
         model=model_name,
@@ -56,6 +57,33 @@ def execute_neural_processing(llm_instance, message_log, active_session_id):
                 HumanMessage if chat_entry["role"] == constants.USER_ROLE else AIMessage
             )
             formatted_history.append(msg_class(content=chat_entry["content"]))
+
+        formatted_history = [SystemMessage(content=constants.SYSTEM_INSTRUCTION)]
+
+        for chat_entry in message_log:
+            content_payload = chat_entry["content"]
+
+            if isinstance(content_payload, list):
+                structured_multimodal_payload = []
+                for content_fragment in content_payload:
+                    if content_fragment.get("type") == "media_data":
+                        structured_multimodal_payload.append(
+                            {
+                                "type": "media",
+                                "mime_type": content_fragment["mime_type"],
+                                "data": content_fragment["data"],
+                            }
+                        )
+                    else:
+                        structured_multimodal_payload.append(content_fragment)
+                content_payload = structured_multimodal_payload
+
+            msg_class = (
+                HumanMessage
+                if chat_entry["role"] == constants.USER_ROLE
+                else AIMessage
+            )
+            formatted_history.append(msg_class(content=content_payload))
 
         try:
             initial_ai_chatbot_msg = llm_with_tools.invoke(formatted_history)
