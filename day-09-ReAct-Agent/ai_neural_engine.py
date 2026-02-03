@@ -8,8 +8,13 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 
 def get_langchain_model():
+    api_key = os.getenv("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
+
+    if not api_key:
+        st.error("GEMINI_API_KEY is missing. Please check your deployment secrets.")
+        st.stop()
+
     model_name = st.session_state.get("selected_model_version", constants.MODEL_NAME)
-    api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
     return ChatGoogleGenerativeAI(
         model=model_name,
