@@ -24,12 +24,11 @@ def get_current_time() -> str:
     Works automatically in Pakistan, USA, or anywhere else.
     """
     try:
-        user_tz = st.context.timezone or "Asia/Karachi"
+        user_timezone = st.context.timezone or "Asia/Karachi"
     except Exception:
-        user_tz = "Asia/Karachi"
+        user_timezone = "Asia/Karachi"
 
-    target_timezone = pytz.timezone(user_tz)
-    local_timezone_now = datetime.datetime.now(target_timezone)
+    local_timezone_now = datetime.datetime.now(pytz.timezone(user_timezone))
     timezone_name = local_timezone_now.strftime("%Z")
 
     return f"{local_timezone_now.strftime('%H:%M:%S')}|{timezone_name}"
