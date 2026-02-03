@@ -17,12 +17,21 @@ class DateResponse(BaseModel):
 
 @tool
 def get_current_time() -> str:
+    """
+    Returns the current local time for Pakistan (PKT).
+    Use this whenever the user asks for the time.
+    """
     timezone = pytz.timezone("Asia/Karachi")
     return f"{datetime.datetime.now(timezone).strftime('%H:%M:%S')}|PKT"
 
 
 @tool
 def get_current_date() -> str:
+    """
+    Returns today's date and day name for Pakistan(2026).
+    Use this whenever the user asks for the date, day, or year.
+    """
     timezone = pytz.timezone("Asia/Karachi")
-    datetime_now = datetime.datetime.now(timezone)
-    return f"{datetime_now.strftime('%Y-%m-%d')}|{datetime_now.strftime('%A')}"
+    timezone_now = datetime.datetime.now(timezone)
+
+    return f"{timezone_now.strftime('%Y-%m-%d')}|{timezone_now.strftime('%A')}"
