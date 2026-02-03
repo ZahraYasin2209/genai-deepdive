@@ -1,13 +1,13 @@
 import datetime
 
-import pytz
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
 
 class TimeResponse(BaseModel):
+    """Structured format for dynamic world-wide time queries."""
     time: str = Field(description="The current time in HH:MM:SS format")
-    timezone: str = Field(description="The timezone code, e.g., PKT")
+    timezone: str = Field(description="The local timezone code, e.g., PKT, EST, PST")
 
 
 class DateResponse(BaseModel):
@@ -18,20 +18,21 @@ class DateResponse(BaseModel):
 @tool
 def get_current_time() -> str:
     """
-    Returns the current local time for Pakistan (PKT).
-    Use this whenever the user asks for the time.
+    Returns the current local time based on the system's location.
+    Works automatically in Pakistan, USA, or anywhere else.
     """
-    timezone = pytz.timezone("Asia/Karachi")
-    return f"{datetime.datetime.now(timezone).strftime('%H:%M:%S')}|PKT"
+    local_timezone_now = datetime.datetime.now(datetime.timezone.utc).astimezone()
+    timezone_name = local_timezone_now.strftime("%Z")
+
+    return f"{local_timezone_now.strftime("%H:%M:%S")}|{timezone_name}"
 
 
 @tool
 def get_current_date() -> str:
     """
-    Returns today's date and day name for Pakistan(2026).
-    Use this whenever the user asks for the date, day, or year.
+    Returns today's date and day name based on the system's local location.
+    Works automatically in Pakistan, USA, or on any global server.
     """
-    timezone = pytz.timezone("Asia/Karachi")
-    timezone_now = datetime.datetime.now(timezone)
+    local_timezone_now = datetime.datetime.now().astimezone()
 
-    return f"{timezone_now.strftime('%Y-%m-%d')}|{timezone_now.strftime('%A')}"
+    return f"{local_timezone_now.strftime("%Y-%m-%d")}|{local_timezone_now.strftime("%A")}"
