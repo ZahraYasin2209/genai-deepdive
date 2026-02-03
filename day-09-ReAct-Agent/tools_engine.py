@@ -1,4 +1,6 @@
 import datetime
+import pytz
+import streamlit as st
 
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
@@ -18,13 +20,19 @@ class DateResponse(BaseModel):
 @tool
 def get_current_time() -> str:
     """
-    Returns the current local time based on the system's location.
+    Returns the current local time based on the user's browser location.
     Works automatically in Pakistan, USA, or anywhere else.
     """
-    local_timezone_now = datetime.datetime.now(datetime.timezone.utc).astimezone()
+    try:
+        user_tz = st.context.timezone or "Asia/Karachi"
+    except Exception:
+        user_tz = "Asia/Karachi"
+
+    target_timezone = pytz.timezone(user_tz)
+    local_timezone_now = datetime.datetime.now(target_timezone)
     timezone_name = local_timezone_now.strftime("%Z")
 
-    return f"{local_timezone_now.strftime("%H:%M:%S")}|{timezone_name}"
+    return f"{local_timezone_now.strftime('%H:%M:%S')}|{timezone_name}"
 
 
 @tool
