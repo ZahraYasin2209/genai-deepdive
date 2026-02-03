@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field
 
 
 class TimeResponse(BaseModel):
-    """Structured format for dynamic world-wide time queries."""
     time: str = Field(description="The current time in HH:MM:SS format")
     timezone: str = Field(description="The local timezone code, e.g., PKT, EST, PST")
 
