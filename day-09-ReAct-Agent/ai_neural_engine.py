@@ -68,7 +68,7 @@ def execute_neural_processing(llm_instance, message_log, active_session_id):
             if isinstance(content_payload, list):
                 structured_multimodal_payload = []
                 for content_fragment in content_payload:
-                    if content_fragment.get("type") == "media_data":
+                    if content_fragment.get("type") == "media":
                         structured_multimodal_payload.append(
                             {
                                 "type": "media",
