@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import ai_neural_engine
+ai_neural_engine.init_langsmith()
+
 import components_renderer
 import constants
 import session_manager
