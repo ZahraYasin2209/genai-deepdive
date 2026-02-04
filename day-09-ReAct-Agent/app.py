@@ -1,4 +1,5 @@
 import uuid
+import os
 
 from dotenv import load_dotenv
 
@@ -10,6 +11,13 @@ import constants
 import session_manager
 import streamlit as st
 
+
+if "LANGCHAIN_API_KEY" in st.secrets:
+    os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+    os.environ["LANGCHAIN_API_KEY"] = st.secrets["LANGCHAIN_API_KEY"]
+    os.environ["LANGCHAIN_PROJECT"] = st.secrets.get("LANGCHAIN_PROJECT", "Nexa-ChatBot-Testing")
+    
 
 def main():
     st.set_page_config(
