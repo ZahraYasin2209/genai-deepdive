@@ -67,7 +67,7 @@ def render_multimodal_item(content_segment: dict):
     FORMAT_TO_COMPONENT_MAP = {
         "text": lambda content: st.markdown(content["text"]),
         "image_url": lambda content: st.image(content["image_url"]["url"]),
-        "media_data": lambda content: st.audio(
+        "media": lambda content: st.audio(
             f"data:{content['mime_type']};base64,{content['data']}"
         ),
     }

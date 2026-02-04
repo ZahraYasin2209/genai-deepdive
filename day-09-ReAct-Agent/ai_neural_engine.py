@@ -5,6 +5,7 @@ import constants
 import streamlit as st
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langsmith import traceable
 
 
 def get_langchain_model():
@@ -26,6 +27,7 @@ def get_langchain_model():
     )
 
 
+@traceable(name="Neural Core Processing")
 def execute_neural_processing(llm_instance, message_log, active_session_id):
     from tools_engine import (
         DateResponse,
@@ -79,11 +81,11 @@ def execute_neural_processing(llm_instance, message_log, active_session_id):
                 content_payload = structured_multimodal_payload
 
             msg_class = (
-                HumanMessage
-                if chat_entry["role"] == constants.USER_ROLE
-                else AIMessage
+                HumanMessage if chat_entry["role"] == constants.USER_ROLE else AIMessage
             )
             formatted_history.append(msg_class(content=content_payload))
+
+        execution_process_completed = False
 
         try:
             initial_ai_chatbot_msg = llm_with_tools.invoke(formatted_history)
@@ -101,8 +103,9 @@ def execute_neural_processing(llm_instance, message_log, active_session_id):
                 )
 
                 json_res = structured_llm.invoke(
-                    f"The tool {tool_name} returned this data: {raw_observation}. "
-                    f"Please format this accurately into the required JSON schema."
+                    f"The tool returned {raw_observation}. "
+                    f"Use this to answer the user's question in a natural, helpful sentence. "
+                    f"Don't guess anything randomly."
                 )
 
                 final_inference_text = (
@@ -129,12 +132,16 @@ def execute_neural_processing(llm_instance, message_log, active_session_id):
             st.session_state.chat_sessions[active_session_id]["messages"].append(
                 {"role": constants.ASSISTANT_ROLE, "content": final_inference_text}
             )
-            st.rerun()
+            execution_process_completed = True
         except Exception as e:
             status_placeholder.empty()
             st.error(f"Neural Core Error: {e}")
+            execution_process_completed = False
+
+    return execution_process_completed
 
 
+@traceable(name="Multimodal Formatter")
 def format_multimodal_content(user_text, uploaded_files=None, recorded_audio=None):
     content_sequence = [{"type": "text", "text": user_text or "Analyze inputs."}]
 
@@ -154,7 +161,7 @@ def format_multimodal_content(user_text, uploaded_files=None, recorded_audio=Non
     if recorded_audio:
         b64_audio = base64.b64encode(recorded_audio.getvalue()).decode("utf-8")
         content_sequence.append(
-            {"type": "media_data", "mime_type": recorded_audio.type, "data": b64_audio}
+            {"type": "media", "mime_type": recorded_audio.type, "data": b64_audio}
         )
 
     return content_sequence
