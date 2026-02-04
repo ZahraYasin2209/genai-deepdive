@@ -86,7 +86,7 @@ def main():
             success = ai_neural_engine.execute_neural_processing(
                 llm_instance=ai_neural_engine.get_langchain_model(),
                 message_log=conversational_history_log,
-                active_session_id=current_active_session_id,
+                active_session_id=current_active_session_id
             )
             if success:
                 st.rerun()
