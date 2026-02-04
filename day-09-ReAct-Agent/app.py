@@ -1,16 +1,23 @@
 import uuid
+import streamlit as st
+import os
 
-from dotenv import load_dotenv
-
-load_dotenv()
+if "LANGCHAIN_API_KEY" in st.secrets:
+    os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    os.environ["LANGCHAIN_API_KEY"] = st.secrets["LANGCHAIN_API_KEY"]
+    os.environ["LANGCHAIN_PROJECT"] = st.secrets.get("LANGCHAIN_PROJECT", "Nexa-Local-Testing")
+    os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 
 import ai_neural_engine
-ai_neural_engine.init_langsmith()
-
 import components_renderer
 import constants
 import session_manager
-import streamlit as st
+
+import uuid
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 def main():
