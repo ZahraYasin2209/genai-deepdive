@@ -27,6 +27,14 @@ def get_langchain_model():
     )
 
 
+def init_langsmith():
+    if "LANGCHAIN_API_KEY" in st.secrets:
+        os.environ["LANGCHAIN_TRACING_V2"] = "true"
+        os.environ["LANGCHAIN_API_KEY"] = st.secrets["LANGCHAIN_API_KEY"]
+        os.environ["LANGCHAIN_PROJECT"] = st.secrets.get("LANGCHAIN_PROJECT", "Nexa-Local-Testing")
+        os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+        
+
 @traceable(name="Neural Core Processing")
 def execute_neural_processing(llm_instance, message_log, active_session_id):
     from tools_engine import (
