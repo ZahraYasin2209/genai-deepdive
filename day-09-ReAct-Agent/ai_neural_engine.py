@@ -25,7 +25,7 @@ def get_langchain_model():
         max_output_tokens=constants.MAX_RESPONSE_TOKENS,
         streaming=True,
     )
-        
+
 
 @traceable(name="Neural Core Processing")
 def execute_neural_processing(llm_instance, message_log, active_session_id):
@@ -59,8 +59,6 @@ def execute_neural_processing(llm_instance, message_log, active_session_id):
                 HumanMessage if chat_entry["role"] == constants.USER_ROLE else AIMessage
             )
             formatted_history.append(msg_class(content=chat_entry["content"]))
-
-        formatted_history = [SystemMessage(content=constants.SYSTEM_INSTRUCTION)]
 
         for chat_entry in message_log:
             content_payload = chat_entry["content"]
