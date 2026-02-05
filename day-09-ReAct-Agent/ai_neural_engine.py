@@ -54,11 +54,6 @@ def execute_neural_processing(llm_instance, message_log, active_session_id):
         status_placeholder.status("Loading...", expanded=False)
 
         formatted_history = [SystemMessage(content=constants.SYSTEM_INSTRUCTION)]
-        for chat_entry in message_log:
-            msg_class = (
-                HumanMessage if chat_entry["role"] == constants.USER_ROLE else AIMessage
-            )
-            formatted_history.append(msg_class(content=chat_entry["content"]))
 
         for chat_entry in message_log:
             content_payload = chat_entry["content"]
@@ -96,16 +91,26 @@ def execute_neural_processing(llm_instance, message_log, active_session_id):
                 tool_to_call = tool_registry.get(tool_name)
                 raw_observation = tool_to_call.invoke(tool_call["args"])
 
+                tool_msg = ToolMessage(
+                    content=str(raw_observation), tool_call_id=tool_call["id"]
+                )
+
                 structured_llm = llm_instance.with_structured_output(
                     schema_registry[tool_name]
                 )
 
-                json_res = structured_llm.invoke(
-                    f"System tool result: {raw_observation}"
+                triggering_user_query = [
+                    user_message
+                    for user_message in formatted_history
+                    if isinstance(user_message, HumanMessage)
+                ][-1]
+
+                json_response = structured_llm.invoke(
+                    [triggering_user_query, initial_ai_chatbot_msg, tool_msg]
                 )
 
                 final_inference_text = (
-                    f"```json\n{json_res.model_dump_json(indent=4)}\n```"
+                    f"```json\n{json_response.model_dump_json(indent=4)}\n```"
                 )
                 response_stream_container.markdown(final_inference_text)
             else:
