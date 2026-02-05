@@ -3,7 +3,7 @@ import os
 
 import constants
 import streamlit as st
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langsmith import traceable
 
