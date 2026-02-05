@@ -101,9 +101,7 @@ def execute_neural_processing(llm_instance, message_log, active_session_id):
                 )
 
                 json_res = structured_llm.invoke(
-                    f"The tool returned {raw_observation}. "
-                    f"Use this to answer the user's question in a natural, helpful sentence. "
-                    f"Don't guess anything randomly."
+                    f"System tool result: {raw_observation}"
                 )
 
                 final_inference_text = (
