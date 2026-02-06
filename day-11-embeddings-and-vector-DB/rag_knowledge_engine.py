@@ -6,6 +6,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import FAISS
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from pathlib import Path
 
 from constants import (
     DEFAULT_KNOWLEDGE_SOURCE,
@@ -32,10 +33,13 @@ class ArchiveIntelligence:
         self.vector_store = self.initialize_knowledge_base()
 
     def initialize_knowledge_base(self):
-        if not os.path.exists(self.data_source_path):
-            raise FileNotFoundError(f"Missing Source Archive: {self.data_source_path}")
+        base_directory = Path(__file__).parent
+        absolute_source_path = base_directory / self.data_source_path
 
-        raw_documents = TextLoader(self.data_source_path).load()
+        if not absolute_source_path.exists():
+            raise FileNotFoundError(f"Missing Source Archive: {absolute_source_path}")
+
+        raw_documents = TextLoader(str(absolute_source_path)).load()
         self.raw_manuscript_content = raw_documents[0].page_content
 
         text_segmenter = RecursiveCharacterTextSplitter(
