@@ -1,0 +1,11 @@
+langchain-google-genai
+langchain-community
+pypdf
+faiss-cpu
+python-dotenv
+langchain-classic
+langchain
+streamlit
+lark
+langchain
+rank_bm25
