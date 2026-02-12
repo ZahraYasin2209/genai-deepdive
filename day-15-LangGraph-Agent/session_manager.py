@@ -1,6 +1,7 @@
+import streamlit as st
+
 import components_renderer
 import constants
-import streamlit as st
 
 
 def initialize_app_state():
