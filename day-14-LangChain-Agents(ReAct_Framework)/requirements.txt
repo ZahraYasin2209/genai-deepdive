@@ -1,0 +1,11 @@
+streamlit
+python-dotenv
+langchain-google-genai
+langchain-community
+langchain-core
+pydantic
+pytz
+langsmith
+deepeval
+langchain-classic
+numexpr
