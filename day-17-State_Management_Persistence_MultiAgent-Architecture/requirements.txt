@@ -9,3 +9,4 @@ deepeval
 langchain-classic
 numexpr
 langgraph-checkpoint-sqlite
+langgraph>=0.0.39
