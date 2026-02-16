@@ -21,9 +21,18 @@ class VanguardResearchMultiAgentArchitecture(TypedDict):
 
 
 def get_langchain_model():
+    model_name = st.session_state.get("selected_model_version", constants.MODEL_NAME)
+    api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        st.error(
+            "Neural Configuration Error: GEMINI_API_KEY not found. Please configure secrets."
+        )
+        st.stop()
+
     return ChatGoogleGenerativeAI(
-        model=constants.MODEL_NAME,
-        google_api_key=os.getenv("GEMINI_API_KEY"),
+        model=model_name,
+        google_api_key=api_key,
         temperature=constants.TEMPERATURE,
         max_output_tokens=constants.MAX_RESPONSE_TOKENS,
         streaming=True,
