@@ -164,18 +164,20 @@ def sync_sidebar_with_db():
 
 def delete_session_permanently(session_id):
     try:
-        cursor = sqlite3.connect("vanguard_memory.db").cursor()
+        conn = sqlite3.connect("vanguard_memory.db")
+        cursor = conn.cursor()
 
         params = (str(session_id),)
 
-        for db_table in ["checkpoints", "writes", "checkpoint_writes", "checkpoint_blobs"]:
+        tables = ["checkpoints", "writes", "checkpoint_writes", "checkpoint_blobs"]
+        for db_table in tables:
             try:
                 cursor.execute(f"DELETE FROM {db_table} WHERE thread_id = ?", params)
             except sqlite3.OperationalError:
                 continue
 
-        sqlite3.connect("vanguard_memory.db").commit()
-        sqlite3.connect("vanguard_memory.db").close()
+        conn.commit()
+        conn.close()
 
         if session_id in st.session_state.chat_sessions:
             del st.session_state.chat_sessions[session_id]
@@ -185,5 +187,6 @@ def delete_session_permanently(session_id):
 
         st.toast(f"Intelligence Node {session_id[:8]} Purged", icon="🗑️")
         st.rerun()
+
     except Exception as e:
         st.error(f"Permanent Wipe Failed: {e}")
