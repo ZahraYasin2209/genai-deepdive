@@ -2,9 +2,9 @@ import sqlite3
 
 import streamlit as st
 
-from ai_neural_engine import get_vanguard_research_app
 import components_renderer
 import constants
+from ai_neural_engine import get_vanguard_research_app
 
 
 def initialize_app_state():
@@ -114,8 +114,12 @@ def sync_sidebar_with_db():
             if current_thread_id in st.session_state.chat_sessions:
                 continue
 
-            runtime_configuration = {"configurable": {"thread_id": str(current_thread_id)}}
-            persisted_graph_state = vanguard_app_instance.get_state(runtime_configuration)
+            runtime_configuration = {
+                "configurable": {"thread_id": str(current_thread_id)}
+            }
+            persisted_graph_state = vanguard_app_instance.get_state(
+                runtime_configuration
+            )
 
             dynamic_session_title = f"Session: {current_thread_id[:8]}"
             processed_message_log = []
@@ -124,13 +128,17 @@ def sync_sidebar_with_db():
                 extracted_message_body = ""
 
                 if isinstance(message_object.content, list):
-                    extracted_message_body = "".join(
-                        [
-                            content_block["text"]
-                            for content_block in message_object.content
-                            if isinstance(content_block, dict) and "text" in content_block
-                        ]
-                    )
+                    fragments = []
+                    for content_block in message_object.content:
+                        if isinstance(content_block, dict):
+                            if "text" in content_block:
+                                fragments.append(content_block["text"])
+                            else:
+                                fragments.append(str(content_block))
+                        else:
+                            fragments.append(str(content_block))
+                    extracted_message_body = "".join(fragments)
+
                 else:
                     extracted_message_body = str(message_object.content)
 
@@ -140,14 +148,17 @@ def sync_sidebar_with_db():
                         if message_object.type == "human"
                         else constants.ASSISTANT_ROLE
                     )
-                    processed_message_log.append({
-                        "role": assigned_role,
-                        "content": extracted_message_body.strip()
-                    })
+                    processed_message_log.append(
+                        {
+                            "role": assigned_role,
+                            "content": extracted_message_body.strip(),
+                        }
+                    )
 
             if processed_message_log:
                 user_initiated_messages = [
-                    entry for entry in processed_message_log
+                    entry
+                    for entry in processed_message_log
                     if entry["role"] == constants.USER_ROLE
                 ]
                 if user_initiated_messages:

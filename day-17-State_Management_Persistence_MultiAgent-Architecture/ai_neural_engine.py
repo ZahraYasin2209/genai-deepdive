@@ -64,35 +64,32 @@ def load_session_history(thread_id):
     )
 
     formatted_conversational_log = []
-
     for agent_message in graph_state_snapshot.values.get("messages", []):
-        has_active_tool_calls = (
+        if agent_message.type == "tool" or (
             hasattr(agent_message, "tool_calls") and agent_message.tool_calls
-        )
-        if not has_active_tool_calls:
-            message_role = (
-                constants.USER_ROLE
-                if agent_message.type == "human"
-                else constants.ASSISTANT_ROLE
-            )
-            raw_message_payload = agent_message.content
+        ):
+            continue
 
-            if isinstance(raw_message_payload, list):
-                sanitized_text_output = "".join(
-                    [
-                        content_fragment["text"]
-                        for content_fragment in raw_message_payload
-                        if isinstance(content_fragment, dict)
-                        and "text" in content_fragment
-                    ]
-                )
-                formatted_conversational_log.append(
-                    {"role": message_role, "content": sanitized_text_output}
-                )
-            else:
-                formatted_conversational_log.append(
-                    {"role": message_role, "content": str(raw_message_payload)}
-                )
+        message_role = (
+            constants.USER_ROLE
+            if agent_message.type == "human"
+            else constants.ASSISTANT_ROLE
+        )
+        raw_message_payload = agent_message.content
+
+        if isinstance(raw_message_payload, list):
+            text = "".join(
+                [
+                    content_fragment["text"]
+                    for content_fragment in raw_message_payload
+                    if isinstance(content_fragment, dict) and "text" in content_fragment
+                ]
+            )
+            formatted_conversational_log.append({"role": message_role, "content": text})
+        else:
+            formatted_conversational_log.append(
+                {"role": message_role, "content": str(raw_message_payload)}
+            )
 
     return formatted_conversational_log
 
@@ -160,26 +157,26 @@ def execute_neural_processing(message_log, active_session_id):
                     if (
                         isinstance(agent_msg, AIMessage)
                         and agent_msg.content
-                        and not agent_msg.tool_calls
+                        and not getattr(agent_msg, "tool_calls", None)
                     ):
                         if isinstance(agent_msg.content, list):
-                            intelligence_content_fragments = [
-                                (
-                                    content_block["text"]
-                                    if isinstance(content_block, dict)
-                                    and "text" in content_block
-                                    else str(content_block)
-                                )
-                                for content_block in agent_msg.content
-                            ]
                             final_intelligence_report = "".join(
-                                intelligence_content_fragments
+                                [
+                                    (
+                                        content_block["text"]
+                                        if isinstance(content_block, dict)
+                                        and "text" in content_block
+                                        else str(content_block)
+                                    )
+                                    for content_block in agent_msg.content
+                                ]
                             )
                         else:
                             final_intelligence_report = str(agent_msg.content)
                         break
 
-                if final_intelligence_report.strip():
+                if final_intelligence_report:
+                    st.markdown(final_intelligence_report.strip())
                     st.session_state.chat_sessions[active_session_id][
                         "messages"
                     ].append(

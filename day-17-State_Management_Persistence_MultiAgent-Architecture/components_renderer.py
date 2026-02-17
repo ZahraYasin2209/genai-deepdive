@@ -88,6 +88,11 @@ def render_active_chat_log():
     current_session_id = st.session_state.active_chat_id
 
     for chat_msg in st.session_state.chat_sessions[current_session_id]["messages"]:
+        msg_content = chat_msg["content"]
+
+        if isinstance(msg_content, str) and msg_content.startswith('[{"title":'):
+            continue
+
         chatbot_avatar = (
             constants.BOT_AVATAR
             if chat_msg["role"] == constants.ASSISTANT_ROLE
@@ -95,20 +100,12 @@ def render_active_chat_log():
         )
 
         with st.chat_message(chat_msg["role"], avatar=chatbot_avatar):
-            message_content = chat_msg["content"]
-
-            if isinstance(message_content, list):
-                clean_text = "".join(
-                    [
-                        msg_item["text"]
-                        for msg_item in message_content
-                        if isinstance(msg_item, dict) and msg_item.get("type") == "text"
-                    ]
-                )
-                if clean_text:
-                    st.markdown(clean_text)
+            if isinstance(msg_content, list):
+                for msg_item in msg_content:
+                    if isinstance(msg_item, dict) and msg_item.get("type") == "text":
+                        st.markdown(msg_item["text"])
             else:
-                st.markdown(str(message_content))
+                st.markdown(str(msg_content))
 
     return True
 

@@ -23,17 +23,11 @@ def main():
         session_manager.sync_sidebar_with_db()
         st.session_state.sidebar_synced = True
 
-        # Render the navigation
-    # session_manager.render_sidebar_navigation()
-    # components_renderer.render_settings_sidebar()
-
     session_manager.render_sidebar_navigation()
 
-    # 4. LOAD HISTORY: If a session is active but empty in RAM, pull from DB
     active_id = st.session_state.active_chat_id
     if active_id and active_id in st.session_state.chat_sessions:
         if not st.session_state.chat_sessions[active_id]["messages"]:
-            # Load from DB into UI memory
             st.session_state.chat_sessions[active_id]["messages"] = (
                 ai_neural_engine.load_session_history(active_id)
             )
@@ -91,7 +85,6 @@ def main():
             }
             st.session_state.active_chat_id = active_id
 
-        # FIX: Append the full neural_payload, not just the raw user_input
         st.session_state.chat_sessions[active_id]["messages"].append(
             {"role": constants.USER_ROLE, "content": neural_payload}
         )
