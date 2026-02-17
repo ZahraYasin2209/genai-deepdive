@@ -62,8 +62,10 @@ def load_session_history(thread_id):
     graph_state_snapshot = vanguard_app.get_state(
         {"configurable": {"thread_id": str(thread_id)}}
     )
-
     formatted_conversational_log = []
+
+    seen_messages = set()
+
     for agent_message in graph_state_snapshot.values.get("messages", []):
         if agent_message.type == "tool" or (
             hasattr(agent_message, "tool_calls") and agent_message.tool_calls
@@ -75,21 +77,26 @@ def load_session_history(thread_id):
             if agent_message.type == "human"
             else constants.ASSISTANT_ROLE
         )
-        raw_message_payload = agent_message.content
 
-        if isinstance(raw_message_payload, list):
-            text = "".join(
-                [
-                    content_fragment["text"]
-                    for content_fragment in raw_message_payload
-                    if isinstance(content_fragment, dict) and "text" in content_fragment
-                ]
-            )
-            formatted_conversational_log.append({"role": message_role, "content": text})
+        raw_message_payload = ""
+        if isinstance(agent_message.content, list):
+            for content_fragment in agent_message.content:
+                if isinstance(content_fragment, dict) and "text" in content_fragment:
+                    raw_message_payload += content_fragment["text"]
+                else:
+                    raw_message_payload += str(content_fragment)
         else:
+            raw_message_payload = str(agent_message.content)
+
+        raw_message_payload = raw_message_payload.strip()
+        if (
+            raw_message_payload
+            and (message_role, raw_message_payload) not in seen_messages
+        ):
             formatted_conversational_log.append(
-                {"role": message_role, "content": str(raw_message_payload)}
+                {"role": message_role, "content": raw_message_payload}
             )
+            seen_messages.add((message_role, raw_message_payload))
 
     return formatted_conversational_log
 
@@ -217,6 +224,7 @@ def execute_neural_processing(message_log, active_session_id):
                 st.rerun()
 
             final_intelligence_report = ""
+
             for msg_class in reversed(ai_chatbot_runtime_response["messages"]):
                 if (
                     isinstance(msg_class, AIMessage)
@@ -224,17 +232,20 @@ def execute_neural_processing(message_log, active_session_id):
                     and not msg_class.tool_calls
                 ):
                     if isinstance(msg_class.content, list):
-                        fragments = [
-                            (
-                                block["text"]
-                                if isinstance(block, dict) and "text" in block
-                                else str(block)
-                            )
-                            for block in msg_class.content
-                        ]
+                        fragments = []
+                        for content_block in msg_class.content:
+                            if (
+                                isinstance(content_block, dict)
+                                and "text" in content_block
+                            ):
+                                fragments.append(content_block["text"])
+                            else:
+                                fragments.append(str(content_block))
                         final_intelligence_report = "".join(fragments)
                     else:
                         final_intelligence_report = str(msg_class.content)
+
+                    final_intelligence_report = final_intelligence_report.strip()
                     break
 
             if final_intelligence_report:

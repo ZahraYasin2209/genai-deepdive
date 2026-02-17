@@ -4,12 +4,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-import streamlit as st
-
 import ai_neural_engine
 import components_renderer
 import constants
 import session_manager
+import streamlit as st
 
 
 def main():

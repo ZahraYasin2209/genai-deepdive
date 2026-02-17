@@ -4,7 +4,7 @@ import streamlit as st
 
 import components_renderer
 import constants
-from ai_neural_engine import get_vanguard_research_app
+from ai_neural_engine import load_session_history
 
 
 def initialize_app_state():
@@ -103,57 +103,18 @@ def render_sidebar_navigation():
 
 def sync_sidebar_with_db():
     try:
-        vanguard_app_instance = get_vanguard_research_app()
-        db_cursor = sqlite3.connect("vanguard_memory.db").cursor()
-
-        db_cursor.execute("SELECT DISTINCT thread_id FROM checkpoints")
-        persisted_thread_identifiers = [row[0] for row in db_cursor.fetchall()]
+        cursor = sqlite3.connect("vanguard_memory.db").cursor()
+        cursor.execute("SELECT DISTINCT thread_id FROM checkpoints")
+        persisted_thread_identifiers = [row[0] for row in cursor.fetchall()]
         sqlite3.connect("vanguard_memory.db").close()
 
         for current_thread_id in persisted_thread_identifiers:
-            if current_thread_id in st.session_state.chat_sessions:
-                continue
-
-            runtime_configuration = {
-                "configurable": {"thread_id": str(current_thread_id)}
+            st.session_state.chat_sessions[current_thread_id] = {
+                "title": "Loading...",
+                "messages": [],
             }
-            persisted_graph_state = vanguard_app_instance.get_state(
-                runtime_configuration
-            )
 
-            dynamic_session_title = f"Session: {current_thread_id[:8]}"
-            processed_message_log = []
-
-            for message_object in persisted_graph_state.values.get("messages", []):
-                extracted_message_body = ""
-
-                if isinstance(message_object.content, list):
-                    fragments = []
-                    for content_block in message_object.content:
-                        if isinstance(content_block, dict):
-                            if "text" in content_block:
-                                fragments.append(content_block["text"])
-                            else:
-                                fragments.append(str(content_block))
-                        else:
-                            fragments.append(str(content_block))
-                    extracted_message_body = "".join(fragments)
-
-                else:
-                    extracted_message_body = str(message_object.content)
-
-                if extracted_message_body.strip():
-                    assigned_role = (
-                        constants.USER_ROLE
-                        if message_object.type == "human"
-                        else constants.ASSISTANT_ROLE
-                    )
-                    processed_message_log.append(
-                        {
-                            "role": assigned_role,
-                            "content": extracted_message_body.strip(),
-                        }
-                    )
+            processed_message_log = load_session_history(current_thread_id)
 
             if processed_message_log:
                 user_initiated_messages = [
@@ -161,16 +122,17 @@ def sync_sidebar_with_db():
                     for entry in processed_message_log
                     if entry["role"] == constants.USER_ROLE
                 ]
-                if user_initiated_messages:
-                    dynamic_session_title = user_initiated_messages[0]["content"][:30]
-
-            st.session_state.chat_sessions[current_thread_id] = {
-                "title": dynamic_session_title,
-                "messages": processed_message_log,
-            }
-
-    except Exception as error_context:
-        print("Sidebar synchronization protocol failed:", error_context)
+                dynamic_session_title = (
+                    user_initiated_messages[0]["content"][:30]
+                    if user_initiated_messages
+                    else f"Session {current_thread_id[:5]}"
+                )
+                st.session_state.chat_sessions[current_thread_id] = {
+                    "title": dynamic_session_title,
+                    "messages": processed_message_log,
+                }
+    except Exception as e:
+        print(f"Sync failed: {e}")
 
 
 def delete_session_permanently(session_id):
