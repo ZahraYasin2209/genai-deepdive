@@ -1,0 +1,15 @@
+streamlit
+python-dotenv
+langchain-google-genai
+langchain-community
+langchain-core
+pydantic
+langsmith
+deepeval
+langchain-classic
+numexpr
+langgraph-checkpoint-sqlite
+langgraph>=0.0.39
+mcp
+pydantic-ai[mcp,logfire]
+pydantic-evals
